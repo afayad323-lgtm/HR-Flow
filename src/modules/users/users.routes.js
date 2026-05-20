@@ -20,20 +20,26 @@ router.get(
   userController.getSingleUser,
 );
 
-router.patch("/me", protect, userController.updateMe);
+router.patch("/update/me", protect, userController.updateMe);
 
 router.patch(
-  "/:id",
+  "/adminUpdate/:id",
   protect,
   authorizeRoles("HR", "ADMIN"),
   userController.adminUpdateUser,
 );
 
 router.delete(
-  "/:id",
+  "/deactivate/:id",
   protect,
   authorizeRoles("HR", "ADMIN"),
   userController.deActivateUser,
+);
+router.patch(
+  "/reactivate/:id",
+  protect,
+  authorizeRoles("ADMIN"),
+  userController.reActivateUser,
 );
 
 module.exports = router;

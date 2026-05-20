@@ -3,9 +3,43 @@ const asyncWrapper = require("../../utils/asyncWrapper");
 const AppError = require("../../utils/AppError");
 
 const getAllUsers = asyncWrapper(async (req, res, next) => {
-  const users = await User.find({ isActive: true }).select("-password");
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
 
-  res.status(200).json({ results: users.length, data: { users } });
+  const skip = (page - 1) * limit;
+
+  const filter = {
+    isActive: true,
+  };
+
+  if (req.query.department) {
+    filter.department = req.query.department;
+  }
+
+  if (req.query.email) {
+    filter.email = {
+      $regex: req.query.email,
+      $options: "i",
+    };
+  }
+
+  const users = await User.find(filter)
+    .select("-password")
+    .skip(skip)
+    .limit(limit);
+
+  const totalUsers = await User.countDocuments(filter);
+
+  res.status(200).json({
+    page,
+    limit,
+    results: users.length,
+    totalUsers,
+    totalPages: Math.ceil(totalUsers / limit),
+    data: {
+      users,
+    },
+  });
 });
 
 const getSingleUser = asyncWrapper(async (req, res, next) => {
@@ -72,6 +106,20 @@ const deActivateUser = asyncWrapper(async (req, res, next) => {
   });
 });
 
+const reActivateUser = asyncWrapper(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { isActive: true },
+    { new: true },
+  ).select("-password");
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+  res
+    .status(200)
+    .json({ message: "User activated successfully", data: { user } });
+});
+
 module.exports = {
   getAllUsers,
   getSingleUser,
@@ -79,4 +127,5 @@ module.exports = {
   deActivateUser,
   adminUpdateUser,
   getMe,
+  reActivateUser,
 };
