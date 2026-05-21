@@ -28,6 +28,10 @@ const userSchema = new Schema(
     department: {
       type: String,
     },
+    availableLeavesDays: {
+      type: Number,
+      default: 21,
+    },
 
     isActive: {
       type: Boolean,
