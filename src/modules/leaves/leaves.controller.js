@@ -1,6 +1,7 @@
 const asyncWrapper = require("../../utils/asyncWrapper");
 const AppError = require("../../utils/AppError");
 const leavesModels = require("./leaves.models");
+const User = require("../users/user.model");
 
 const createLeave = asyncWrapper(async (req, res, next) => {
   const { startDate, endDate, reason } = req.body;
@@ -79,6 +80,13 @@ const updateLeaves = asyncWrapper(async (req, res, next) => {
   if (endDate) leave.endDate = endDate;
   if (reason) leave.reason = reason;
 
+  const numberOfDays =
+    (new Date(leave.endDate) - new Date(leave.startDate)) /
+      (1000 * 60 * 60 * 24) +
+    1;
+
+  leave.numberOfDays = numberOfDays;
+
   await leave.save();
 
   res.status(200).json({
@@ -110,4 +118,72 @@ const deleteLeave = asyncWrapper(async (req, res, next) => {
   });
 });
 
-module.exports = { createLeave, getLeaves, updateLeaves, deleteLeave };
+const managerApproval = asyncWrapper(async (req, res, next) => {
+  const leave = await leavesModels.findById(req.params.id);
+
+  if (!leave) {
+    return next(new AppError("leave not found", 404));
+  }
+
+  const employee = await User.findById(leave.employee);
+
+  if (!employee.managerId || employee.managerId.toString() !== req.user.id) {
+    return next(new AppError("Not your employee", 403));
+  }
+
+  if (leave.status !== "PENDING_MANAGER") {
+    return next(new AppError("Invalid status", 400));
+  }
+
+  leave.status = "PENDING_HR";
+  leave.approvedBy = req.user.id;
+  await leave.save();
+  res.status(200).json({
+    message: "Leave approved by manager",
+    data: { leave },
+  });
+});
+
+const hrApproval = asyncWrapper(async (req, res, next) => {
+  const leave = await leavesModels.findById(req.params.id);
+
+  if (!leave) {
+    return next(new AppError("leave not found", 404));
+  }
+
+  if (leave.status !== "PENDING_HR") {
+    return next(new AppError("Invalid status", 400));
+  }
+
+  const employee = await User.findById(leave.employee);
+
+  if (!employee) {
+    return next(new AppError("Employee not found", 404));
+  }
+
+  employee.availableLeavesDays -= leave.numberOfDays;
+
+  leave.status = "APPROVED";
+  leave.approvedBy = req.user.id;
+
+  await leave.save();
+  await employee.save();
+
+  const updatedLeave = await leavesModels
+    .findById(leave._id)
+    .populate("approvedBy", "name email");
+
+  res.status(200).json({
+    message: "Leave approved by HR",
+    data: { leave: updatedLeave },
+  });
+});
+
+module.exports = {
+  createLeave,
+  getLeaves,
+  updateLeaves,
+  deleteLeave,
+  managerApproval,
+  hrApproval,
+};

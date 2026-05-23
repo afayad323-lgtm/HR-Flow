@@ -7,8 +7,7 @@ const authorizeRoles = (...roles) => {
         new AppError("You are not allowed to access this route", 403),
       );
     }
-    console.log(req.user.role);
-    console.log(roles);
+
     next();
   };
 };
