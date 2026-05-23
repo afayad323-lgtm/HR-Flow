@@ -1,20 +1,37 @@
-# HRFlow
+🚀 HRFlow
 
-HRFlow is a secure HR management system API built with Node.js, Express, and MongoDB.
+HRFlow is a secure and scalable HR Management System API built with Node.js, Express, and MongoDB.
+It handles user management, authentication, and a complete leave approval workflow with role-based access control.
 
-## Features
-
-- JWT Authentication
-- Role-Based Access Control (RBAC)
-- User Registration & Login
-- Change Password
-- Get Current User Profile
-- Update User Profile
-- Admin User Management
-- Soft Delete Users
-- Global Error Handling
-- Async Wrapper Middleware
-- Secure RESTful APIs
+✨ Features
+🔐 Authentication & Security
+JWT Authentication
+Change Password
+Secure Password Hashing (bcrypt)
+Role-Based Access Control (RBAC)
+👥 User Management
+User Registration & Login
+Get / Update Profile
+Admin User Management
+Soft Delete Users
+Manager Assignment (managerId relationship)
+🏖️ Leave Management System
+Create Leave Requests
+Update / Delete Requests (before approval)
+View Leaves based on Role:
+Employee → own leaves only
+Manager → team leaves
+HR/Admin → all leaves
+Manager Approval (based on reporting hierarchy)
+HR Final Approval
+Automatic leave balance deduction
+Leave status workflow:
+PENDING_MANAGER → PENDING_HR → APPROVED
+🧠 Backend Features
+Global Error Handling
+Async Wrapper Middleware
+Clean MVC Architecture
+Secure RESTful APIs
 
 ## Tech Stack
 
