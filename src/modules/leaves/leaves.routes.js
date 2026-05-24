@@ -20,4 +20,17 @@ router.patch(
   authorizeRoles("HR", "ADMIN"),
   leavesController.hrApproval,
 );
+
+router.patch(
+  "/:id/manager-reject",
+  protect,
+  authorizeRoles("MANAGER"),
+  leavesController.managerReject,
+);
+router.patch(
+  "/:id/hr-reject",
+  protect,
+  authorizeRoles("HR", "ADMIN"),
+  leavesController.hrReject,
+);
 module.exports = router;

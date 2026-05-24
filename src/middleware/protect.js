@@ -30,10 +30,6 @@ const protect = asyncWrapper(async (req, res, next) => {
   }
 
   req.user = user;
-  console.log("TOKEN OK");
-  console.log(decoded);
-  console.log(user);
-  console.log("HEADERS:", req.headers.authorization);
 
   next();
 });
